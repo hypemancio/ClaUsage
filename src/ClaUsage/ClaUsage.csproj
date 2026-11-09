@@ -15,6 +15,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <InvariantGlobalization>false</InvariantGlobalization>
+    <!-- The standalone exe bundles .NET: compressed it drops from ~173 MB to ~75 MB for ~160 ms more at each start. -->
+    <EnableCompressionInSingleFile Condition="'$(SelfContained)' == 'true'">true</EnableCompressionInSingleFile>
     <DefineConstants Condition="'$(SelfContained)' == 'true'">$(DefineConstants);SELF_CONTAINED</DefineConstants>
     <NoWarn>$(NoWarn);WFO0003</NoWarn>
   </PropertyGroup>
