@@ -59,7 +59,7 @@ Serve il .NET 10 SDK.
 
 ```powershell
 .\build.ps1                 # dist\ClaUsage.exe piccolo, richiede .NET 10 Desktop Runtime
-.\build.ps1 -SelfContained  # exe autonomo, gira su qualsiasi Windows 10/11 x64
+.\build.ps1 -SelfContained  # dist\standalone\ClaUsage.exe compresso (~75 MB), gira su qualsiasi Windows 10/11 x64
 ```
 
 Opzioni da riga di comando:
