@@ -14,6 +14,7 @@ public static class DemoData
         new Account { Id = "demo-claude", Kind = ProviderKind.Claude, Label = "you@example.com" },
         new Account { Id = "demo-codex", Kind = ProviderKind.Codex, Label = "you@example.com" },
         new Account { Id = "demo-openrouter", Kind = ProviderKind.OpenRouter, Label = "OpenRouter Account" },
+        new Account { Id = "demo-deepseek", Kind = ProviderKind.DeepSeek, Label = "DeepSeek ···a1b2" },
     };
 
     public static UsageSnapshot For(Account account, DateTimeOffset now) => account.Kind switch
@@ -22,6 +23,7 @@ public static class DemoData
         ProviderKind.Codex => CodexProvider.MapUsage(CodexUsage(now), _ => null, now),
         ProviderKind.OpenRouter => OpenRouterProvider.Map(OpenRouterKey()["data"]!, OpenRouterCredits(), OpenRouterKeys(),
             OpenRouterProvider.MapActivity(OpenRouterActivity(now), now), now),
+        ProviderKind.DeepSeek => DeepSeekProvider.Map(DeepSeekBalance()),
         _ => new UsageSnapshot(),
     };
 
@@ -91,6 +93,12 @@ public static class DemoData
         ] }
         """)!;
     }
+
+    /// <summary>A USD balance with promotional credit left.</summary>
+    public static JsonNode DeepSeekBalance() => JsonNode.Parse("""
+        { "is_available": true, "balance_infos": [
+          { "currency": "USD", "total_balance": "18.40", "granted_balance": "3.40", "topped_up_balance": "15.00" } ] }
+        """)!;
 
     private static UsageSnapshot WithResets(UsageSnapshot snapshot, DateTimeOffset now)
     {
@@ -187,6 +195,19 @@ public static class DemoData
             """)!, null, null, null, now);
         Expect(standard.Lines.Select(l => l.Label).SequenceEqual(new[] { "Today", "This week", "This month", "Key limit" })
                && Format.Value(standard.Lines[3]) == "$15.00 / $20.00", "standard key: own spend and key limit");
+
+        var deepseek = DeepSeekProvider.Map(DeepSeekBalance());
+        sb.AppendLine($"DeepSeek plan={deepseek.Plan}");
+        foreach (var l in deepseek.Lines) sb.AppendLine($"  {l.Label}: {Format.Value(l)}");
+        Expect(deepseek.Plan == "Pay-as-you-go" && deepseek.Lines.Select(l => $"{l.Label}={Format.Value(l)}")
+               .SequenceEqual(new[] { "Balance=$18.40", "Topped up=$15.00", "Granted=$3.40" }), "DeepSeek balance split");
+        var yuan = DeepSeekProvider.Map(JsonNode.Parse("""
+            { "is_available": false, "balance_infos": [
+              { "currency": "CNY", "total_balance": "0.00", "granted_balance": "0.00", "topped_up_balance": "0.00" },
+              { "currency": "USD", "total_balance": "2.5", "granted_balance": "2.5", "topped_up_balance": "0" } ] }
+            """));
+        Expect(yuan.Plan == "No balance" && yuan.Lines.Select(l => $"{l.Label}={Format.Value(l)}")
+               .SequenceEqual(new[] { "Balance (CNY)=¥0.00", "Balance (USD)=$2.50" }), "DeepSeek per-currency rows, empty account");
 
         // Loopback OAuth callback: a real HTTP round trip on 127.0.0.1 and on "localhost".
         try

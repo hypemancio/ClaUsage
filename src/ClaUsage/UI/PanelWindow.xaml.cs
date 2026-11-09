@@ -148,7 +148,7 @@ public partial class PanelWindow : Window
         });
         panel.Children.Add(new TextBlock
         {
-            Text = "Sign in to Claude or ChatGPT, or add an OpenRouter key, to see your limits and spend here.",
+            Text = "Sign in to Claude or ChatGPT, or add an OpenRouter or DeepSeek key, to see your limits and spend here.",
             TextWrapping = TextWrapping.Wrap,
             TextAlignment = TextAlignment.Center,
             Foreground = _theme.Muted,
@@ -531,6 +531,8 @@ public partial class PanelWindow : Window
         menu.Items.Add(Item(account.Kind.UsesApiKey() ? "Replace API key…" : "Sign in again…", () => _app.ShowSignIn(account.Kind, account)));
         if (account.Kind == ProviderKind.OpenRouter)
             menu.Items.Add(Item("Open OpenRouter credits", () => OAuthFlow.OpenBrowser(new Uri("https://openrouter.ai/settings/credits"))));
+        if (account.Kind == ProviderKind.DeepSeek)
+            menu.Items.Add(Item("Open DeepSeek top up", () => OAuthFlow.OpenBrowser(Providers.DeepSeekProvider.TopUpPage)));
 
         var labels = snap?.Lines.Select(l => l.Label).Distinct().ToList() ?? new();
         if (labels.Count > 0)

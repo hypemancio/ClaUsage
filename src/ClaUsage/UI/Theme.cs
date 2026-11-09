@@ -55,6 +55,7 @@ public sealed class Theme
         ProviderKind.Claude => B("#D97757"),
         ProviderKind.Codex => B("#0D0D0D"),
         ProviderKind.OpenRouter => B("#6467F2"),
+        ProviderKind.DeepSeek => B("#4D6BFE"),
         _ => B("#888888"),
     };
 

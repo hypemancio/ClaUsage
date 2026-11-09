@@ -26,11 +26,15 @@ senza dipendenze esterne.
 | Claude | Browser (OAuth claude.ai, solo `user:profile`) | Session, Weekly, Sonnet, Opus, limiti per modello (es. Fable), Extra usage, piano |
 | ChatGPT | Browser (OAuth OpenAI, porta 1455), fallback device code | Session, Weekly, Spark, Rate limit resets, Credits, Credit limit, piano |
 | OpenRouter | API key (Management o standard) | Balance, Today, Yesterday, This week, This month, Prior 30 days, Key limit, Budget, Free requests |
+| DeepSeek | API key | Balance, Topped up, Granted (USD o CNY), stato del saldo |
 
 Con una **Management key** (da openrouter.ai/settings/management-keys) vedi tutto l'account: saldo e spesa
 sommata su tutte le chiavi. Con una **chiave standard** vedi solo la sua spesa e i suoi limiti. Giorni, budget
 e limiti si azzerano a mezzanotte UTC, la settimana parte il lunedì. Se la chiave viene rifiutata, la scheda
 offre **Replace key**.
+
+DeepSeek usa l'endpoint ufficiale `/user/balance`: basta una qualsiasi API key (da platform.deepseek.com/api_keys).
+Mostra il saldo per valuta, diviso tra credito ricaricato e credito omaggio. DeepSeek non espone lo storico della spesa.
 
 Il token Claude ha scope `user:profile`: legge uso e profilo, non può eseguire modelli né creare chiavi.
 ClaUsage non legge le credenziali di Claude Code, Codex o altri tool: ogni account fa il proprio login.
@@ -98,7 +102,7 @@ SHA-256 e crea la Release. La versione dell'exe viene presa dal tag.
 
 ## Loghi
 
-I loghi di Claude, OpenAI e OpenRouter servono solo a indicare a quale servizio appartiene un account.
+I loghi di Claude, OpenAI, OpenRouter e DeepSeek servono solo a indicare a quale servizio appartiene un account.
 Sono marchi dei rispettivi proprietari. ClaUsage non è affiliato né approvato da loro.
 
 ## Struttura
@@ -106,7 +110,7 @@ Sono marchi dei rispettivi proprietari. ClaUsage non è affiliato né approvato 
 ```
 src/ClaUsage/
   Core/       modelli, storage DPAPI, OAuth (PKCE + server loopback), servizio di refresh, dati demo
-  Providers/  ClaudeProvider, CodexProvider
+  Providers/  ClaudeProvider, CodexProvider, OpenRouterProvider, DeepSeekProvider
   UI/         pannello, finestre di login e settings, icona tray
 ```
 

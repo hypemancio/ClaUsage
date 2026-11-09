@@ -185,6 +185,7 @@ public sealed class SignInWindow : ThemedWindow, ILoginUi
                 ProviderKind.Claude => "Session, weekly and model limits, extra usage",
                 ProviderKind.Codex => "Session, weekly, Spark, credits",
                 ProviderKind.OpenRouter => "API key: balance, spend, key limit, budget",
+                ProviderKind.DeepSeek => "API key: balance, granted and topped-up credit",
                 _ => "",
             }));
         }

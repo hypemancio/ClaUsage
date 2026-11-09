@@ -26,6 +26,7 @@ public static class Providers
         new ClaudeProvider(),
         new CodexProvider(),
         new OpenRouterProvider(),
+        new DeepSeekProvider(),
     };
 
     public static IUsageProvider For(ProviderKind kind) => All.First(p => p.Kind == kind);

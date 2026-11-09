@@ -7,18 +7,20 @@ public enum ProviderKind
     Claude,
     Codex,
     OpenRouter,
+    DeepSeek,
 }
 
 public static class ProviderKindExtensions
 {
     /// <summary>API-key providers have no sign-in to renew; a refused key is replaced.</summary>
-    public static bool UsesApiKey(this ProviderKind kind) => kind == ProviderKind.OpenRouter;
+    public static bool UsesApiKey(this ProviderKind kind) => kind is ProviderKind.OpenRouter or ProviderKind.DeepSeek;
 
     public static string DisplayName(this ProviderKind kind) => kind switch
     {
         ProviderKind.Claude => "Claude",
         ProviderKind.Codex => "ChatGPT",
         ProviderKind.OpenRouter => "OpenRouter",
+        ProviderKind.DeepSeek => "DeepSeek",
         _ => kind.ToString(),
     };
 
@@ -27,6 +29,7 @@ public static class ProviderKindExtensions
         ProviderKind.Claude => "claude",
         ProviderKind.Codex => "codex",
         ProviderKind.OpenRouter => "openrouter",
+        ProviderKind.DeepSeek => "deepseek",
         _ => kind.ToString().ToLowerInvariant(),
     };
 }

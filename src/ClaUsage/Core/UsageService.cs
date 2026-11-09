@@ -437,7 +437,7 @@ public static class Format
             "USD" or null => "$",
             "EUR" => "€",
             "GBP" => "£",
-            "JPY" => "¥",
+            "JPY" or "CNY" => "¥",
             var other => other + " ",
         };
         return $"{symbol}{value.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}";
