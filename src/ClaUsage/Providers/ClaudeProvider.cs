@@ -8,7 +8,7 @@ namespace ClaUsage.Providers;
 /// <summary>
 /// Claude (claude.ai subscription). Signs in with claude.ai OAuth asking only for <c>user:profile</c>,
 /// which covers the usage and profile endpoints and cannot run inference.
-/// Endpoints and mapping follow OpenUsage (MIT, github.com/robinebers/openusage).
+/// Endpoints and mapping derive from MIT-licensed open source; see THIRD_PARTY_NOTICES.txt.
 /// </summary>
 public sealed partial class ClaudeProvider : IUsageProvider
 {

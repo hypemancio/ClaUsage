@@ -7,7 +7,7 @@ namespace ClaUsage.Providers;
 /// <summary>
 /// ChatGPT (Codex) subscription limits. Signs in with plain OpenID Connect through OpenAI, the same client
 /// the Codex CLI uses, on its fixed callback port 1455; falls back to a device code when the port is busy.
-/// Endpoints and mapping follow OpenUsage (MIT, github.com/robinebers/openusage).
+/// Endpoints and mapping derive from MIT-licensed open source; see THIRD_PARTY_NOTICES.txt.
 /// </summary>
 public sealed class CodexProvider : IUsageProvider
 {

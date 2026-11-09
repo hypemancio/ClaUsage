@@ -1,8 +1,7 @@
 # ClaUsage
 
-Quanto hai usato dei tuoi abbonamenti AI, nella tray di Windows. Port per Windows di
-[OpenUsage](https://github.com/robinebers/openusage) (macOS), scritto in C#/WPF su .NET 10, senza
-dipendenze esterne.
+Quanto hai usato dei tuoi abbonamenti AI, nella tray di Windows. Scritto in C#/WPF su .NET 10,
+senza dipendenze esterne.
 
 ## Cosa fa
 
@@ -115,5 +114,7 @@ Aggiungere un provider: implementare `IUsageProvider` e registrarlo in `Provider
 
 ## Crediti
 
-Endpoint e mappatura delle risposte portati da OpenUsage di Robin Ebers, licenza MIT.
+by MANCIO | hypemancio | @_hypemancio_
+
+Parte della lettura dei dati dai provider deriva da un progetto open source con licenza MIT.
 Vedi `THIRD_PARTY_NOTICES.txt`.

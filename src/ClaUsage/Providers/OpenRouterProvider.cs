@@ -10,7 +10,7 @@ namespace ClaUsage.Providers;
 /// OpenRouter, with an API key. A Management key sees the whole account (balance, spend summed over every
 /// key, daily activity); a standard key sees only its own spend and limits.
 /// OpenRouter's days, limits and budgets reset at midnight UTC and its weeks start on Monday.
-/// Endpoints and mapping follow OpenUsage (MIT, github.com/robinebers/openusage).
+/// Endpoints and mapping derive from MIT-licensed open source; see THIRD_PARTY_NOTICES.txt.
 /// </summary>
 public sealed class OpenRouterProvider : IUsageProvider
 {

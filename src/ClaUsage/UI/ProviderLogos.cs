@@ -8,7 +8,7 @@ namespace ClaUsage.UI;
 
 /// <summary>
 /// Provider marks (Claude, OpenAI, OpenRouter) as vector glyphs, drawn white on the brand color.
-/// Path data from OpenUsage's ProviderIcons; the marks are trademarks of their owners and are used only
+/// Path data from MIT-licensed open source (see THIRD_PARTY_NOTICES.txt); the marks are trademarks of their owners and are used only
 /// to identify which service an account belongs to.
 /// </summary>
 public static class ProviderLogos
