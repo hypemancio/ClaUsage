@@ -1,0 +1,56 @@
+name: Release
+
+# Push a tag like v1.1.0 to build and publish a release.
+# The app's self-updater reads the latest release and its .sha256 files.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Version from tag
+        id: v
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Self-test
+        shell: pwsh
+        run: |
+          dotnet build src/ClaUsage/ClaUsage.csproj -c Release
+          & src/ClaUsage/bin/Release/net10.0-windows/ClaUsage.exe --selftest | Out-Host
+          if ($LASTEXITCODE -ne 0) { throw "self-test failed" }
+
+      - name: Publish
+        shell: pwsh
+        run: |
+          $common = @('-c','Release','-r','win-x64','-p:PublishSingleFile=true','-p:IncludeNativeLibrariesForSelfExtract=true','-p:DebugType=none',"-p:Version=${{ steps.v.outputs.version }}")
+          dotnet publish src/ClaUsage/ClaUsage.csproj @common --self-contained false -o out/fd
+          dotnet publish src/ClaUsage/ClaUsage.csproj @common --self-contained true -o out/sc
+          New-Item -ItemType Directory -Force release | Out-Null
+          Copy-Item out/fd/ClaUsage.exe release/ClaUsage.exe
+          Copy-Item out/sc/ClaUsage.exe release/ClaUsage-standalone.exe
+          foreach ($f in Get-ChildItem release/*.exe) {
+            $hash = (Get-FileHash $f.FullName -Algorithm SHA256).Hash.ToLower()
+            "$hash  $($f.Name)" | Set-Content -NoNewline -Encoding ascii "$($f.FullName).sha256"
+          }
+          Get-ChildItem release | Format-Table Name, Length
+
+      - name: Create release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" release/* --title "ClaUsage ${{ github.ref_name }}" --generate-notes
