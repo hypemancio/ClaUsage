@@ -493,7 +493,21 @@ public sealed class SettingsWindow : ThemedWindow
         root.Children.Add(add);
 
         var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-        root.Children.Add(Body($"ClaUsage {version?.ToString(3)} · Windows port inspired by OpenUsage (MIT) by Robin Ebers.\nData: {AppPaths.DataDir}", 18));
+        root.Children.Add(new TextBlock
+        {
+            Text = $"CLAUSAGE • v{version?.ToString(3)}",
+            FontWeight = FontWeights.SemiBold,
+            Foreground = T.Text,
+            Margin = new Thickness(0, 18, 0, 0),
+        });
+        root.Children.Add(Body("by MANCIO | hypemancio | @_hypemancio_", 2));
+        root.Children.Add(Body($"Data: {AppPaths.DataDir}", 6));
+        // MIT asks that the notice of the code ClaUsage builds on stays reachable.
+        var licenses = new TextBlock { Margin = new Thickness(0, 4, 0, 0), FontSize = 11.5 };
+        var licensesLink = new System.Windows.Documents.Hyperlink(new System.Windows.Documents.Run("Open-source licenses")) { Foreground = T.Muted };
+        licensesLink.Click += (_, _) => OAuthFlow.OpenBrowser(new Uri("https://github.com/hypemancio/ClaUsage/blob/main/THIRD_PARTY_NOTICES.txt"));
+        licenses.Inlines.Add(licensesLink);
+        root.Children.Add(licenses);
         var close = Button("Close", primary: true);
         close.IsCancel = true;
         close.Click += (_, _) => Close();
