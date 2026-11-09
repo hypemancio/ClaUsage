@@ -73,6 +73,7 @@ public partial class App : Application
 
         WindowIcon = LoadWindowIcon();
         Service = new UsageService(demo);
+        Theme.Mode = Service.Settings.AppTheme;
         _panel = new PanelWindow(this);
 
         _tray = new WinForms.NotifyIcon

@@ -99,6 +99,14 @@ public enum TrayDisplay
     IconOnly,
 }
 
+public enum AppTheme
+{
+    /// <summary>Follows the Windows app theme.</summary>
+    System,
+    Light,
+    Dark,
+}
+
 public sealed class AppSettings
 {
     public int RefreshMinutes { get; set; } = 5;
@@ -107,6 +115,7 @@ public sealed class AppSettings
     public bool Notifications { get; set; } = true;
     public bool ShowPace { get; set; } = true;
     public TrayDisplay TrayDisplay { get; set; } = TrayDisplay.HighestPercent;
+    public AppTheme AppTheme { get; set; } = AppTheme.System;
     public bool HotkeyEnabled { get; set; } = true;
     public bool CheckForUpdates { get; set; } = true;
     /// <summary>The release already announced with a notification, so it's announced once.</summary>

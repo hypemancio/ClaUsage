@@ -4,7 +4,7 @@ using ClaUsage.Core;
 
 namespace ClaUsage.UI;
 
-/// <summary>Colors for the current Windows app theme, read each time a window opens.</summary>
+/// <summary>Colors for the chosen theme (or the Windows app theme), read each time a window opens.</summary>
 public sealed class Theme
 {
     public bool Dark { get; }
@@ -40,7 +40,17 @@ public sealed class Theme
         ButtonHover = B(dark ? "#3A3A3F" : "#E8E8EC");
     }
 
-    public static Theme Current() => new(WindowsTheme.IsDark);
+    /// <summary>The theme picked in Settings; <see cref="AppTheme.System"/> follows Windows.</summary>
+    public static AppTheme Mode { get; set; }
+
+    public static bool IsDark => Mode switch
+    {
+        AppTheme.Light => false,
+        AppTheme.Dark => true,
+        _ => WindowsTheme.IsDark,
+    };
+
+    public static Theme Current() => new(IsDark);
 
     public SolidColorBrush ForFraction(double fraction, AppSettings settings)
     {

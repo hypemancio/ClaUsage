@@ -39,7 +39,7 @@ public static class ProviderLogos
             CornerRadius = new CornerRadius(size * 0.26),
             Background = Theme.ProviderColor(kind),
             BorderBrush = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)),
-            BorderThickness = new Thickness(kind == ProviderKind.Codex && WindowsTheme.IsDark ? 1 : 0),
+            BorderThickness = new Thickness(kind == ProviderKind.Codex && Theme.IsDark ? 1 : 0),
         };
         if (!Glyphs.TryGetValue(kind, out var glyph))
         {

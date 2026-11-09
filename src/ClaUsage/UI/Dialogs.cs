@@ -414,6 +414,17 @@ public sealed class SettingsWindow : ThemedWindow
         refresh.SelectionChanged += (_, _) => { settings.RefreshMinutes = (int)((ComboBoxItem)refresh.SelectedItem).Tag; _app.Service.NotifySettingsChanged(); };
         root.Children.Add(Row("Refresh", refresh, "Claude allows about 30 usage reads an hour per account, shared with Claude Code."));
 
+        // Theme: the settings window reopens in the new colors; the panel picks them up when it next opens.
+        var theme = Combo(new[] { ("Same as Windows", (object)AppTheme.System), ("Light", AppTheme.Light), ("Dark", AppTheme.Dark) }, settings.AppTheme);
+        theme.SelectionChanged += (_, _) =>
+        {
+            settings.AppTheme = Theme.Mode = (AppTheme)((ComboBoxItem)theme.SelectedItem).Tag;
+            _app.Service.NotifySettingsChanged();
+            if (Theme.IsDark == T.Dark) return;
+            Dispatcher.BeginInvoke(() => { Close(); _app.ShowSettings(); });
+        };
+        root.Children.Add(Row("Theme", theme, null));
+
         // Tray.
         var tray = Combo(new[] { ("Highest usage as a number", (object)TrayDisplay.HighestPercent), ("Ring gauge", TrayDisplay.IconOnly) }, settings.TrayDisplay);
         tray.SelectionChanged += (_, _) => { settings.TrayDisplay = (TrayDisplay)((ComboBoxItem)tray.SelectedItem).Tag; _app.Service.NotifySettingsChanged(); };
