@@ -1,6 +1,6 @@
 name: Release
 
-# Push a tag like v1.1.0 to build and publish a release.
+# Push a tag like v0.6.0 to build and publish a release.
 # The app's self-updater reads the latest release and its .sha256 files.
 on:
   push:

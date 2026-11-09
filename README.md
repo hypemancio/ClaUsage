@@ -89,8 +89,8 @@ considera di non avere aggiornamenti.
 ### Pubblicare una versione
 
 ```powershell
-# 1. Aggiorna <Version> in src/ClaUsage/ClaUsage.csproj (es. 1.1.0) e fai commit
-git tag v1.1.0
+# 1. Aggiorna <Version> in src/ClaUsage/ClaUsage.csproj (es. 0.6.0) e fai commit
+git tag v0.6.0
 git push origin main --tags
 ```
 
