@@ -208,7 +208,9 @@ public partial class App : Application
             Log.Write($"update failed: {e.Message}");
             Installing = false;
             Service.NotifySettingsChanged();
-            MessageBox.Show($"The update didn't install: {e.Message}\n\nYou can download it from {release.Page}.", "ClaUsage", MessageBoxButton.OK, MessageBoxImage.Warning);
+            AppDialog.Notice(null, "Update didn't install",
+                $"{e.Message} Your current version keeps working. You can download {release.Tag} from {release.Page}.",
+                AppDialog.Tone.Warning);
         }
     }
 

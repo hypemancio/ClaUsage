@@ -135,7 +135,7 @@ public sealed partial class ClaudeProvider
     {
         public string Message => Outcome switch
         {
-            ClaimOutcome.Success => "Reset used. Your limits are refilled.",
+            ClaimOutcome.Success => "Your limits are refilled. The panel updates in a moment.",
             ClaimOutcome.NothingToReset => "Nothing to reset: you aren't limited right now. Your reset is still available.",
             ClaimOutcome.NoCredit => "No reset is available anymore.",
             ClaimOutcome.Unconfirmed => "Anthropic didn't confirm the reset yet. Check your limits in a few minutes.",

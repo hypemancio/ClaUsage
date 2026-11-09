@@ -496,13 +496,19 @@ public partial class PanelWindow : Window
         _menuOpen = true;
         try
         {
-            var confirm = MessageBox.Show(this,
-                $"Use a Claude rate-limit reset on {account.DisplayName}?\n\n{line.ActionDetail ?? "Refills your limits now. This can't be undone."}",
-                "ClaUsage", MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
-            if (confirm != MessageBoxResult.OK) return;
+            var left = (int)line.Used;
+            if (!AppDialog.Confirm(this,
+                    "Use a rate-limit reset?",
+                    $"{account.DisplayName} has {left} reset{(left == 1 ? "" : "s")} available.",
+                    "Use reset",
+                    line.ActionDetail ?? "Refills your limits now. This can't be undone.",
+                    AppDialog.Tone.Warning,
+                    account.Kind))
+                return;
             var result = await _app.Service.ClaimClaudeReset(account);
-            var icon = result.Outcome == Providers.ClaudeProvider.ClaimOutcome.Success ? MessageBoxImage.Information : MessageBoxImage.Warning;
-            MessageBox.Show(this, result.Message, "ClaUsage", MessageBoxButton.OK, icon);
+            var success = result.Outcome == Providers.ClaudeProvider.ClaimOutcome.Success;
+            AppDialog.Notice(this, success ? "Reset used" : "Reset not used", result.Message,
+                success ? AppDialog.Tone.Info : AppDialog.Tone.Warning, account.Kind);
         }
         finally
         {
@@ -570,11 +576,11 @@ public partial class PanelWindow : Window
     private void RemoveAccount(Account account)
     {
         _menuOpen = true;
-        var result = MessageBox.Show(this,
-            $"Remove {account.Kind.DisplayName()} account {account.DisplayName}?\n\nIts sign-in is deleted from this PC.",
-            "ClaUsage", MessageBoxButton.OKCancel, MessageBoxImage.Question);
+        var remove = AppDialog.Confirm(this, "Remove account?",
+            $"{account.Kind.DisplayName()} · {account.DisplayName}",
+            "Remove", "Its sign-in is deleted from this PC.", AppDialog.Tone.Danger, account.Kind);
         _menuOpen = false;
-        if (result == MessageBoxResult.OK) _app.Service.Remove(account);
+        if (remove) _app.Service.Remove(account);
         Activate();
     }
 

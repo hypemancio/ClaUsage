@@ -478,7 +478,8 @@ public sealed class SettingsWindow : ThemedWindow
             remove.VerticalAlignment = VerticalAlignment.Center;
             remove.Click += (_, _) =>
             {
-                if (MessageBox.Show(this, $"Remove {account.DisplayName}? Its sign-in is deleted from this PC.", "ClaUsage", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) return;
+                if (!AppDialog.Confirm(this, "Remove account?", $"{account.Kind.DisplayName()} · {account.DisplayName}",
+                        "Remove", "Its sign-in is deleted from this PC.", AppDialog.Tone.Danger, account.Kind)) return;
                 _app.Service.Remove(account);
                 Build();
             };
@@ -549,4 +550,109 @@ public sealed class SettingsWindow : ThemedWindow
         box.Unchecked += (_, _) => { set(false); _app.Service.NotifySettingsChanged(); };
         return box;
     }
+}
+
+/// <summary>
+/// The app's own confirm and notice dialogs, in the same look as its other windows (theme, fonts,
+/// provider mark), instead of the system message box.
+/// </summary>
+public sealed class AppDialog : ThemedWindow
+{
+    public enum Tone { Info, Warning, Danger }
+
+    private bool _confirmed;
+
+    private AppDialog(string title, string message, string? detail, string confirmText, string? cancelText, Tone tone, ProviderKind? provider)
+    {
+        Title = "ClaUsage";
+        Width = 420;
+        ShowInTaskbar = false;
+        Topmost = true;
+
+        var root = new Grid { Margin = new Thickness(22, 20, 22, 18) };
+        root.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+        FrameworkElement mark = provider is { } kind
+            ? ProviderLogos.Badge(kind, 36)
+            : new Border
+            {
+                Width = 36,
+                Height = 36,
+                CornerRadius = new CornerRadius(18),
+                Background = tone switch { Tone.Danger => T.Critical, Tone.Warning => T.Warn, _ => T.Accent },
+                Child = new TextBlock
+                {
+                    Text = tone == Tone.Info ? "i" : "!",
+                    Foreground = Brushes.White,
+                    FontWeight = FontWeights.Bold,
+                    FontSize = 18,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                },
+            };
+        mark.Margin = new Thickness(0, 2, 14, 0);
+        mark.VerticalAlignment = VerticalAlignment.Top;
+        root.Children.Add(mark);
+
+        var text = new StackPanel();
+        var heading = Heading(title);
+        heading.FontSize = 16;
+        heading.TextWrapping = TextWrapping.Wrap;
+        heading.Margin = new Thickness(0, 0, 0, 6);
+        text.Children.Add(heading);
+        text.Children.Add(new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap, Foreground = T.Text });
+        if (!string.IsNullOrWhiteSpace(detail))
+            text.Children.Add(new TextBlock
+            {
+                Text = detail,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = tone == Tone.Danger ? T.Critical : T.Muted,
+                FontSize = 12,
+                Margin = new Thickness(0, 8, 0, 0),
+            });
+
+        var confirm = Button(confirmText, primary: true);
+        if (tone == Tone.Danger) confirm.Background = T.Critical;
+        confirm.Click += (_, _) => { _confirmed = true; Close(); };
+        var buttons = new List<UIElement>();
+        if (cancelText is not null)
+        {
+            // Cancel is the default: Enter or Esc never spends or deletes anything by accident.
+            var cancel = Button(cancelText);
+            cancel.IsDefault = true;
+            cancel.IsCancel = true;
+            cancel.Click += (_, _) => Close();
+            buttons.Add(cancel);
+            Loaded += (_, _) => cancel.Focus();
+        }
+        else
+        {
+            confirm.IsDefault = true;
+            confirm.IsCancel = true;
+            Loaded += (_, _) => confirm.Focus();
+        }
+        buttons.Add(confirm);
+        text.Children.Add(ButtonRow(buttons.ToArray()));
+
+        Grid.SetColumn(text, 1);
+        root.Children.Add(text);
+        Content = root;
+    }
+
+    private static bool Show(Window? owner, AppDialog dialog)
+    {
+        if (owner is { IsVisible: true }) dialog.Owner = owner;
+        else dialog.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        dialog.ShowDialog();
+        return dialog._confirmed;
+    }
+
+    /// <summary>Asks before an action; true only when the user picks <paramref name="confirmText"/>.</summary>
+    public static bool Confirm(Window? owner, string title, string message, string confirmText,
+        string? detail = null, Tone tone = Tone.Warning, ProviderKind? provider = null) =>
+        Show(owner, new AppDialog(title, message, detail, confirmText, "Cancel", tone, provider));
+
+    public static void Notice(Window? owner, string title, string message, Tone tone = Tone.Info, ProviderKind? provider = null) =>
+        Show(owner, new AppDialog(title, message, null, "OK", null, tone, provider));
 }
