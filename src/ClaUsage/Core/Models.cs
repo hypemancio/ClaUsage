@@ -71,6 +71,12 @@ public sealed class MetricLine
     public DateTimeOffset? ResetsAt { get; set; }
     public long? PeriodMs { get; set; }
     public string? Text { get; set; }
+    /// <summary>When each available item (e.g. a rate-limit reset) expires, soonest first.</summary>
+    public List<DateTimeOffset>? Expiries { get; set; }
+    /// <summary>Set when the row offers an action (e.g. spending a reset): the provider's id for it.</summary>
+    public string? ActionId { get; set; }
+    /// <summary>What the action does, shown in its confirmation.</summary>
+    public string? ActionDetail { get; set; }
 
     /// <summary>Fraction used 0..1 (null for plain values).</summary>
     [JsonIgnore]

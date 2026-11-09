@@ -69,7 +69,90 @@ public sealed class UsageService
             if (snap?.RetryAt is { } retry) return now >= retry;
             return snap?.FetchedAt is not { } at || now - at >= interval;
         }).ToList();
-        return Task.WhenAll(due.Select(a => Refresh(a, force: false)));
+        var secondary = Accounts.Where(a => a.Kind == ProviderKind.Claude && !due.Contains(a) && SecondaryDue(a, now)).ToList();
+        return Task.WhenAll(due.Select(a => Refresh(a, force: false)).Concat(secondary.Select(ReadSecondary)));
+    }
+
+    /// <summary>
+    /// Claude's reset grants are read apart from the usage read: Anthropic answers a grants read sent right
+    /// after a usage read with a 429. So it waits at least 2 minutes after a good usage read, at most hourly.
+    /// </summary>
+    private bool SecondaryDue(Account account, DateTimeOffset now)
+    {
+        if (_demo || _inFlight.Contains(account.Id)) return false;
+        var snap = Snapshot(account.Id);
+        return snap is { State: SnapshotState.Ok, FetchedAt: { } at }
+               && now - at >= TimeSpan.FromMinutes(2)
+               && ClaudeProvider.GrantsDue(account, now);
+    }
+
+    private async Task ReadSecondary(Account account)
+    {
+        if (!_inFlight.Add(account.Id)) return;
+        try
+        {
+            var provider = (ClaudeProvider)Providers.Providers.For(ProviderKind.Claude);
+            if (account.ExpiresAt is { } exp && exp - DateTimeOffset.UtcNow < TimeSpan.FromMinutes(2) && !string.IsNullOrEmpty(account.RefreshToken))
+            {
+                await provider.RefreshTokenAsync(account, _cts.Token);
+                SaveAccounts();
+            }
+            await provider.ReadGrantsAsync(account, _cts.Token);
+            ApplyResetsLine(account);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            Log.Write($"claude secondary read failed: {e.Message}");
+        }
+        finally
+        {
+            _inFlight.Remove(account.Id);
+            SaveCache();
+            Changed?.Invoke();
+        }
+    }
+
+    /// <summary>Swaps the resets row of the shown snapshot for the latest one, without a usage read.</summary>
+    private void ApplyResetsLine(Account account)
+    {
+        if (Snapshot(account.Id) is not { } snap) return;
+        snap.Lines.RemoveAll(l => l.Label == ClaudeProvider.ResetsLabel);
+        if (ClaudeProvider.ResetsLine(account, DateTimeOffset.UtcNow) is { } line) snap.Lines.Add(line);
+    }
+
+    /// <summary>Spends one Claude rate-limit reset. The UI has already asked the user to confirm.</summary>
+    public async Task<ClaudeProvider.ClaimResult> ClaimClaudeReset(Account account)
+    {
+        if (_demo) return new ClaudeProvider.ClaimResult(ClaudeProvider.ClaimOutcome.Success);
+        var provider = (ClaudeProvider)Providers.Providers.For(ProviderKind.Claude);
+        ClaudeProvider.ClaimResult result;
+        _inFlight.Add(account.Id);
+        Changed?.Invoke();
+        try
+        {
+            if (account.ExpiresAt is { } exp && exp - DateTimeOffset.UtcNow < TimeSpan.FromMinutes(2) && !string.IsNullOrEmpty(account.RefreshToken))
+            {
+                await provider.RefreshTokenAsync(account, _cts.Token);
+                SaveAccounts();
+            }
+            result = await provider.ClaimResetAsync(account, _cts.Token);
+            SaveAccounts();
+            ApplyResetsLine(account);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            Log.Write($"claude reset claim failed: {e.Message}");
+            result = new ClaudeProvider.ClaimResult(e is SignInExpiredException ? ClaudeProvider.ClaimOutcome.SignInExpired : ClaudeProvider.ClaimOutcome.Failed);
+        }
+        finally
+        {
+            _inFlight.Remove(account.Id);
+            SaveCache();
+            Changed?.Invoke();
+        }
+        // A used reset changes the limits: read them again (the usage read is separate from the claim).
+        if (result.Outcome == ClaudeProvider.ClaimOutcome.Success) _ = Refresh(account, force: true);
+        return result;
     }
 
     public async Task Refresh(Account account, bool force)

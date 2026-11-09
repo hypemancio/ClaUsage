@@ -92,7 +92,9 @@ public sealed partial class ClaudeProvider : IUsageProvider
         var body = response.Json() ?? throw new ProviderException("Claude returned an invalid usage response.");
 
         await MaybeReadPlan(account, ct);
-        return MapUsage(body, account.Extras.GetValueOrDefault("plan"));
+        var snapshot = MapUsage(body, account.Extras.GetValueOrDefault("plan"));
+        if (ResetsLine(account, DateTimeOffset.UtcNow) is { } resets) snapshot.Lines.Add(resets);
+        return snapshot;
     }
 
     public static UsageSnapshot MapUsage(JsonNode body, string? plan)
@@ -129,6 +131,7 @@ public sealed partial class ClaudeProvider : IUsageProvider
     private static void StorePlan(Account account, JsonNode? profile)
     {
         var plan = FormatPlan(JsonRead.Str(profile?["organization"]?["organization_type"]), JsonRead.Str(profile?["organization"]?["rate_limit_tier"]));
+        if (JsonRead.Str(profile?["organization"]?["uuid"]) is { } org && Guid.TryParse(org, out _)) account.Extras["orgUuid"] = org;
         if (plan is null) account.Extras.Remove("plan");
         else account.Extras["plan"] = plan;
         account.Extras["planReadAt"] = DateTimeOffset.UtcNow.ToString("O");

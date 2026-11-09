@@ -18,7 +18,7 @@ public static class DemoData
 
     public static UsageSnapshot For(Account account, DateTimeOffset now) => account.Kind switch
     {
-        ProviderKind.Claude => ClaudeProvider.MapUsage(ClaudeUsage(now), ClaudeProvider.FormatPlan("claude_max", "default_claude_max_5x")),
+        ProviderKind.Claude => WithResets(ClaudeProvider.MapUsage(ClaudeUsage(now), ClaudeProvider.FormatPlan("claude_max", "default_claude_max_5x")), now),
         ProviderKind.Codex => CodexProvider.MapUsage(CodexUsage(now), _ => null, now),
         ProviderKind.OpenRouter => OpenRouterProvider.Map(OpenRouterKey()["data"]!, OpenRouterCredits(), OpenRouterKeys(),
             OpenRouterProvider.MapActivity(OpenRouterActivity(now), now), now),
@@ -92,6 +92,25 @@ public static class DemoData
         """)!;
     }
 
+    private static UsageSnapshot WithResets(UsageSnapshot snapshot, DateTimeOffset now)
+    {
+        snapshot.Lines.Add(ClaudeProvider.ParseGrants(ClaudeGrants(now))!.Line(now));
+        return snapshot;
+    }
+
+    /// <summary>The <c>cedar_ember</c> block of a grants read: one grant with two resets, one used up, one expired.</summary>
+    public static JsonNode ClaudeGrants(DateTimeOffset now) => JsonNode.Parse($$"""
+    {
+      "eligible": true,
+      "next_grant_id": "grant_a",
+      "grants": [
+        { "id": "grant_a", "resets_left": 2, "ends_at": "{{Iso(now.AddDays(5))}}", "clears": ["five_hour", "seven_day"] },
+        { "id": "grant_b", "resets_left": 0, "ends_at": "{{Iso(now.AddDays(9))}}", "clears": ["five_hour"] },
+        { "id": "grant_c", "resets_left": 1, "ends_at": "{{Iso(now.AddDays(-1))}}", "clears": ["seven_day"] }
+      ]
+    }
+    """)!;
+
     private static string Iso(DateTimeOffset d) => d.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
     /// <summary>Runs both mappers on the samples and returns a readable report, failing loudly on surprises.</summary>
@@ -116,6 +135,20 @@ public static class DemoData
         Expect(ClaudeProvider.FormatPlan("claude_pro", null) == "Pro", "Pro plan");
         Expect(ClaudeProvider.FormatPlan("claude_max", "default_claude_max_20x") == "Ultra", "Max 20x reads Ultra");
         Expect(ClaudeProvider.FormatPlan("claude_team", "tier_5x") == "Team 5x", "Team 5x");
+
+        var grants = ClaudeProvider.ParseGrants(ClaudeGrants(now))!;
+        var resets = grants.Line(now);
+        Expect(resets.Used == 2 && resets.Text == "2 available", "resets: counts live grants only (used-up and expired skipped)");
+        Expect(resets.Expiries is { Count: 2 } && resets.ActionId == "grant_a", "resets: two expiries, next grant claimable");
+        Expect(grants.ConfirmDetail == "Refills your session and weekly limits now. This can't be undone.", "resets: confirmation names the windows");
+        Expect((grants with { Eligible = false }).Line(now).ActionId is null, "resets: ineligible offers no Use");
+        Expect(ClaudeProvider.ParseGrants(JsonNode.Parse("""{ "eligible": true, "grants": [ { "id": "x" } ] }""")) is null, "resets: malformed grant ignores the block");
+        ClaudeProvider.ClaimOutcome Claim(string json) => ClaudeProvider.MapClaimBody(JsonNode.Parse(json)).Outcome;
+        Expect(Claim("""{ "result": "reset" }""") == ClaudeProvider.ClaimOutcome.Success, "claim: reset is success");
+        Expect(Claim("""{ "result": "already_used" }""") == ClaudeProvider.ClaimOutcome.Success, "claim: retried claim is success, not a second spend");
+        Expect(Claim("""{ "result": "unavailable", "reason": "not_limited" }""") == ClaudeProvider.ClaimOutcome.NothingToReset, "claim: not limited keeps the reset");
+        Expect(Claim("""{ "result": "unavailable", "reason": "cooldown", "cooldown_until": "2030-01-01T00:00:00Z" }""") == ClaudeProvider.ClaimOutcome.UnavailableNow, "claim: cooldown");
+        Expect(Claim("""{ "result": "weird" }""") == ClaudeProvider.ClaimOutcome.Refused, "claim: unknown result refused");
 
         var codex = CodexProvider.MapUsage(CodexUsage(now), _ => null, now);
         sb.AppendLine($"Codex plan={codex.Plan}");

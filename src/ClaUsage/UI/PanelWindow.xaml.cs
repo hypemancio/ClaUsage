@@ -367,6 +367,19 @@ public partial class PanelWindow : Window
         if (line.Fraction is { } f0 && f0 < settings.WarnPercent / 100.0) value.Foreground = _theme.Text;
         Grid.SetColumn(value, 1);
         top.Children.Add(value);
+        if (line.ActionId is not null && account.Kind == ProviderKind.Claude)
+        {
+            top.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var use = PrimaryButton("Use");
+            use.Padding = new Thickness(10, 1, 10, 2);
+            use.Margin = new Thickness(8, 0, 0, 0);
+            use.FontSize = 12;
+            use.IsEnabled = !_app.Service.IsRefreshing;
+            use.ToolTip = line.ActionDetail;
+            use.Click += (_, _) => _ = UseClaudeReset(account, line);
+            Grid.SetColumn(use, 2);
+            top.Children.Add(use);
+        }
         root.Children.Add(top);
 
         if (line.Fraction is { } fraction)
@@ -378,6 +391,8 @@ public partial class PanelWindow : Window
         var details = new List<string>();
         if (withAccount && _app.Service.Accounts.Count(a => a.Kind == account.Kind) > 1) details.Add(account.DisplayName);
         if (line.ResetsAt is { } reset) details.Add($"Resets {Format.ResetIn(reset, now)} · {Format.ResetClock(reset, now)}");
+        if (line.Expiries is { Count: > 0 } expiries && expiries.FirstOrDefault(e => e > now) is var next && next > now)
+            details.Add($"Next expires {Format.ResetIn(next, now)} · {Format.ResetClock(next, now)}");
         var paceText = PaceText(line, now, out var paceBrush);
         if (details.Count > 0 || paceText is not null)
         {
@@ -473,6 +488,27 @@ public partial class PanelWindow : Window
         template.VisualTree = border;
         button.Template = template;
         return button;
+    }
+
+    /// <summary>Spends a Claude reset after an explicit confirmation; the outcome is shown either way.</summary>
+    private async Task UseClaudeReset(Account account, MetricLine line)
+    {
+        _menuOpen = true;
+        try
+        {
+            var confirm = MessageBox.Show(this,
+                $"Use a Claude rate-limit reset on {account.DisplayName}?\n\n{line.ActionDetail ?? "Refills your limits now. This can't be undone."}",
+                "ClaUsage", MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            if (confirm != MessageBoxResult.OK) return;
+            var result = await _app.Service.ClaimClaudeReset(account);
+            var icon = result.Outcome == Providers.ClaudeProvider.ClaimOutcome.Success ? MessageBoxImage.Information : MessageBoxImage.Warning;
+            MessageBox.Show(this, result.Message, "ClaUsage", MessageBoxButton.OK, icon);
+        }
+        finally
+        {
+            _menuOpen = false;
+            if (IsVisible) Activate();
+        }
     }
 
     // ---------------------------------------------------------------- menus
