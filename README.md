@@ -56,12 +56,25 @@ Anthropic concede circa 30 letture di uso all'ora per account, condivise con Cla
 default è ogni 5 minuti. Su un 429 ClaUsage non invia nulla finché la finestra non scade, nemmeno su
 refresh manuale. Il piano Claude viene riletto al massimo una volta l'ora.
 
+## Installazione
+
+Scarica `ClaUsage-Setup.exe` dall'ultima Release e avvialo. Non servono permessi di amministratore:
+installa per il tuo utente in `%LOCALAPPDATA%\Programs\ClaUsage`, aggiunge il collegamento nel menu Start
+e, se vuoi, sul desktop e l'avvio con Windows. ClaUsage compare in Impostazioni › App, da dove si disinstalla
+(a scelta tenendo o cancellando account e impostazioni).
+
+Il setup gira su .NET Framework 4.8, già presente in Windows 10/11. Se manca il .NET 10 Desktop Runtime
+scarica la versione standalone della stessa Release e ne verifica lo SHA-256. Per un'installazione
+silenziosa: `ClaUsage-Setup.exe --silent` (opzioni `--dir "cartella"` e `--no-autostart`).
+
+Gli exe singoli `ClaUsage.exe` e `ClaUsage-standalone.exe` restano nelle Release per chi non vuole installare.
+
 ## Build
 
 Serve il .NET 10 SDK.
 
 ```powershell
-.\build.ps1                 # dist\ClaUsage.exe piccolo, richiede .NET 10 Desktop Runtime
+.\build.ps1                 # dist\ClaUsage.exe piccolo, richiede .NET 10 Desktop Runtime, e dist\ClaUsage-Setup.exe
 .\build.ps1 -SelfContained  # dist\standalone\ClaUsage.exe compresso (~75 MB), gira su qualsiasi Windows 10/11 x64
 ```
 
@@ -70,9 +83,10 @@ Opzioni da riga di comando:
 ```
 ClaUsage                         Avvia la tray app
 ClaUsage --background            Avvia senza aprire il pannello (usato dall'avvio automatico)
-ClaUsage --json [claude|codex|openrouter]   Stampa l'ultimo uso letto, in JSON
+ClaUsage --json [claude|codex|openrouter|deepseek]   Stampa l'ultimo uso letto, in JSON
 ClaUsage --demo                  Dati di esempio, nessun login
 ClaUsage --selftest              Verifica parser e callback OAuth
+ClaUsage --uninstall [--silent]  Disinstalla (usato da Impostazioni › App)
 ```
 
 ## Aggiornamenti automatici
@@ -97,8 +111,8 @@ git tag v0.6.0
 git push origin main --tags
 ```
 
-GitHub Actions esegue il selftest, compila `ClaUsage.exe` e `ClaUsage-standalone.exe`, calcola gli
-SHA-256 e crea la Release. La versione dell'exe viene presa dal tag.
+GitHub Actions esegue il selftest, compila `ClaUsage.exe`, `ClaUsage-standalone.exe` e
+`ClaUsage-Setup.exe`, calcola gli SHA-256 e crea la Release. La versione dell'exe viene presa dal tag.
 
 ## Loghi
 
@@ -112,6 +126,7 @@ src/ClaUsage/
   Core/       modelli, storage DPAPI, OAuth (PKCE + server loopback), servizio di refresh, dati demo
   Providers/  ClaudeProvider, CodexProvider, OpenRouterProvider, DeepSeekProvider
   UI/         pannello, finestre di login e settings, icona tray
+installer/ClaUsage.Setup/   setup (.NET Framework 4.8) con ClaUsage.exe incorporato
 ```
 
 Aggiungere un provider: implementare `IUsageProvider` e registrarlo in `Providers.All`.
