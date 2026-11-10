@@ -15,7 +15,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>ClaUsage-Setup</AssemblyName>
     <RootNamespace>ClaUsage.Setup</RootNamespace>
-    <Version>0.6.6</Version>
+    <Version>0.6.7</Version>
     <Product>ClaUsage Setup</Product>
     <Company>MANCIO</Company>
     <ApplicationIcon>..\..\src\ClaUsage\Assets\app.ico</ApplicationIcon>
