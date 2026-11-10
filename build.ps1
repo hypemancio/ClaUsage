@@ -14,3 +14,11 @@ if ($LASTEXITCODE -ne 0) { throw "Build failed (is $out\ClaUsage.exe running? Qu
 
 & "$out\ClaUsage.exe" --selftest | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "Self-test failed." }
+
+if (-not $SelfContained) {
+  $version = ([xml](Get-Content "$PSScriptRoot\src\ClaUsage\ClaUsage.csproj")).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+  dotnet build "$PSScriptRoot\installer\ClaUsage.Setup\ClaUsage.Setup.csproj" -c Release `
+    "-p:PayloadExe=$out\ClaUsage.exe" "-p:Version=$version" -o "$PSScriptRoot\installer\bin\out"
+  if ($LASTEXITCODE -ne 0) { throw "Setup build failed." }
+  Copy-Item "$PSScriptRoot\installer\bin\out\ClaUsage-Setup.exe" "$out\ClaUsage-Setup.exe" -Force
+}

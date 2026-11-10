@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    ClaUsage-Setup.exe. Targets .NET Framework 4.8, which ships with Windows 10/11, so the setup runs before
+    any .NET runtime is installed. ClaUsage.exe (framework-dependent) is embedded; when the .NET 10 Desktop
+    Runtime is missing the setup downloads the standalone build of the same release instead.
+    Build after publishing the app:  dotnet build -c Release -p:PayloadExe=<path to ClaUsage.exe> -p:Version=x.y.z
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AssemblyName>ClaUsage-Setup</AssemblyName>
+    <RootNamespace>ClaUsage.Setup</RootNamespace>
+    <Version>0.6.6</Version>
+    <Product>ClaUsage Setup</Product>
+    <Company>MANCIO</Company>
+    <ApplicationIcon>..\..\src\ClaUsage\Assets\app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DebugType>none</DebugType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <PayloadExe Condition="'$(PayloadExe)' == ''">..\..\dist\ClaUsage.exe</PayloadExe>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
+    <EmbeddedResource Include="$(PayloadExe)" LogicalName="ClaUsage.exe" />
+    <Resource Include="..\..\src\ClaUsage\Assets\app.png" Link="Assets\app.png" />
+  </ItemGroup>
+
+  <Target Name="CheckPayload" BeforeTargets="BeforeBuild">
+    <Error Condition="!Exists('$(PayloadExe)')" Text="Payload $(PayloadExe) not found. Publish ClaUsage first (build.ps1)." />
+  </Target>
+
+</Project>

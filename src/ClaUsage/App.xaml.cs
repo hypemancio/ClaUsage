@@ -49,6 +49,12 @@ public partial class App : Application
             return;
         }
 
+        if (e.Args.Contains("--uninstall"))
+        {
+            Shutdown(Uninstall(silent: e.Args.Contains("--silent")));
+            return;
+        }
+
         var demo = e.Args.Contains("--demo");
         _mutex = new Mutex(true, demo ? MutexName + ".demo" : MutexName, out var first);
         if (!first && e.Args.Contains("--updated"))
@@ -120,6 +126,7 @@ public partial class App : Application
         UpdateTray();
 
         _ = Updater.CleanupAsync();
+        if (!demo) InstallInfo.RefreshVersion(Updater.Current.ToString(3));
         if (e.Args.Contains("--updated"))
             _tray.ShowBalloonTip(5000, "ClaUsage updated", $"You're on version {Updater.Current}.", WinForms.ToolTipIcon.Info);
         _updateTimer.Tick += (_, _) => _ = CheckForUpdates(manual: false);
@@ -350,6 +357,29 @@ public partial class App : Application
                 }),
             });
         stdout.WriteLine(JsonSerializer.Serialize(entries, Json.Options));
+    }
+
+    /// <summary>Run by Windows' installed apps (the setup registers <c>ClaUsage.exe --uninstall</c>). Returns the exit code.</summary>
+    private static int Uninstall(bool silent)
+    {
+        WindowIcon = LoadWindowIcon();
+        Theme.Mode = AppSettings.Load().AppTheme;
+        if (!InstallInfo.IsInstalled)
+        {
+            if (!silent)
+                AppDialog.Notice(null, "Nothing to uninstall",
+                    "This copy of ClaUsage wasn't installed with the setup. Quit it from the tray and delete the file to remove it.");
+            return 1;
+        }
+        if (!silent && !AppDialog.Confirm(null, "Uninstall ClaUsage?",
+                "ClaUsage closes and is removed from this PC, with its shortcuts.", "Uninstall", tone: AppDialog.Tone.Danger))
+            return 1;
+        var deleteData = !silent && AppDialog.Confirm(null, "Delete your sign-ins too?",
+            "Your accounts, tokens and settings are still saved on this PC.", "Delete them",
+            "Keep them to be signed in right away if you install ClaUsage again.", AppDialog.Tone.Danger, cancelText: "Keep them");
+        InstallInfo.Uninstall(deleteData);
+        if (!silent) AppDialog.Notice(null, "ClaUsage is uninstalled", "Thanks for using it.");
+        return 0;
     }
 
     private static ImageSource? LoadWindowIcon()

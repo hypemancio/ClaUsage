@@ -666,8 +666,8 @@ public sealed class AppDialog : ThemedWindow
 
     /// <summary>Asks before an action; true only when the user picks <paramref name="confirmText"/>.</summary>
     public static bool Confirm(Window? owner, string title, string message, string confirmText,
-        string? detail = null, Tone tone = Tone.Warning, ProviderKind? provider = null) =>
-        Show(owner, new AppDialog(title, message, detail, confirmText, "Cancel", tone, provider));
+        string? detail = null, Tone tone = Tone.Warning, ProviderKind? provider = null, string cancelText = "Cancel") =>
+        Show(owner, new AppDialog(title, message, detail, confirmText, cancelText, tone, provider));
 
     public static void Notice(Window? owner, string title, string message, Tone tone = Tone.Info, ProviderKind? provider = null) =>
         Show(owner, new AppDialog(title, message, null, "OK", null, tone, provider));

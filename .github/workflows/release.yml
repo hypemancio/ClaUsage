@@ -42,6 +42,10 @@ jobs:
           New-Item -ItemType Directory -Force release | Out-Null
           Copy-Item out/fd/ClaUsage.exe release/ClaUsage.exe
           Copy-Item out/sc/ClaUsage.exe release/ClaUsage-standalone.exe
+          # The installer carries the small exe; without the .NET 10 runtime it downloads the standalone one.
+          dotnet build installer/ClaUsage.Setup/ClaUsage.Setup.csproj -c Release "-p:PayloadExe=$PWD/out/fd/ClaUsage.exe" "-p:Version=${{ steps.v.outputs.version }}" -o out/setup
+          if ($LASTEXITCODE -ne 0) { throw "setup build failed" }
+          Copy-Item out/setup/ClaUsage-Setup.exe release/ClaUsage-Setup.exe
           foreach ($f in Get-ChildItem release/*.exe) {
             $hash = (Get-FileHash $f.FullName -Algorithm SHA256).Hash.ToLower()
             "$hash  $($f.Name)" | Set-Content -NoNewline -Encoding ascii "$($f.FullName).sha256"
