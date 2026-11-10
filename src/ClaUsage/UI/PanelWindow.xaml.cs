@@ -569,7 +569,7 @@ public partial class PanelWindow : Window
     private void Rename(Account account)
     {
         _menuOpen = true;
-        var name = InputDialog.Ask(this, "Rename account", $"Name for {account.Label}:", account.DisplayName);
+        var name = InputDialog.Ask(this, "Rename account", $"Name for {account.DisplayName}:", account.DisplayName);
         _menuOpen = false;
         if (name is not null) _app.Service.Rename(account, name);
         Activate();

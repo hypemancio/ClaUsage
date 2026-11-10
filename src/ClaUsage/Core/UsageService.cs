@@ -30,6 +30,7 @@ public sealed class UsageService
     {
         _demo = demo;
         Settings = AppSettings.Load();
+        Account.MaskEmails = Settings.HideEmails;
         Accounts = demo ? DemoData.Accounts() : AccountStore.Load();
         SortAccounts();
         foreach (var entry in demo ? new() : SnapshotCache.Load())
@@ -256,6 +257,18 @@ public sealed class UsageService
     {
         foreach (var line in snapshot.Lines)
         {
+            if (IsBalance(line))
+            {
+                var low = Settings.LowBalance > 0 && line.Used < Settings.LowBalance;
+                var balanceKey = $"{account.Id}|{line.Label}|low";
+                var wasLow = _alertLevels.GetValueOrDefault(balanceKey) == 1;
+                _alertLevels[balanceKey] = low ? 1 : 0;
+                if (!low || wasLow || !Settings.Notifications || Settings.IsHidden(account.Id, line.Label)) continue;
+                Alert?.Invoke(
+                    $"{account.Kind.DisplayName()} balance low",
+                    $"{account.DisplayName}: {Format.Money(line.Used, line.Unit)} left.");
+                continue;
+            }
             if (line.Fraction is not { } fraction) continue;
             var percent = fraction * 100;
             var level = percent >= Settings.CriticalPercent ? 2 : percent >= Settings.WarnPercent ? 1 : 0;
@@ -270,6 +283,10 @@ public sealed class UsageService
                 $"{account.DisplayName}: {(level == 2 ? "almost used up" : "running low")}.{reset}");
         }
     }
+
+    /// <summary>A prepaid balance row of an API-key provider (OpenRouter, DeepSeek).</summary>
+    public static bool IsBalance(MetricLine line) =>
+        line.Kind == MetricKind.Value && line.IsCurrency && line.Label.StartsWith("Balance", StringComparison.Ordinal);
 
     /// <param name="replacing">When set, the new sign-in or key replaces this account's credential.</param>
     public Account AddOrUpdate(Account account, Account? replacing = null)

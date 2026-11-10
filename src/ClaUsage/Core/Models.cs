@@ -48,8 +48,18 @@ public sealed class Account
     public string? Identity { get; set; }
     public Dictionary<string, string> Extras { get; set; } = new();
 
+    /// <summary>Set from <see cref="AppSettings.HideEmails"/>.</summary>
+    public static bool MaskEmails { get; set; }
+
     [JsonIgnore]
-    public string DisplayName => string.IsNullOrWhiteSpace(CustomName) ? Label : CustomName!;
+    public string DisplayName => !string.IsNullOrWhiteSpace(CustomName) ? CustomName! : MaskEmails ? Mask(Label) : Label;
+
+    /// <summary>"mario@example.com" reads "m•••@example.com"; anything else is unchanged.</summary>
+    public static string Mask(string label)
+    {
+        var at = label.IndexOf('@');
+        return at <= 0 ? label : $"{label[0]}•••{label[at..]}";
+    }
 }
 
 public enum MetricKind

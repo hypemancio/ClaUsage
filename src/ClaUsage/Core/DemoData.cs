@@ -209,6 +209,11 @@ public static class DemoData
         Expect(yuan.Plan == "No balance" && yuan.Lines.Select(l => $"{l.Label}={Format.Value(l)}")
                .SequenceEqual(new[] { "Balance (CNY)=¥0.00", "Balance (USD)=$2.50" }), "DeepSeek per-currency rows, empty account");
 
+        Expect(Account.Mask("mario.rossi@gmail.com") == "m•••@gmail.com" && Account.Mask("OpenRouter Account") == "OpenRouter Account", "email masking");
+        Expect(UsageService.IsBalance(deepseek.Lines[0]) && !UsageService.IsBalance(deepseek.Lines[1]), "balance rows feed the low-balance alert");
+        var noCodexResets = CodexProvider.MapUsage(JsonNode.Parse("""{ "rate_limit_reset_credits": { "available_count": 0 } }""")!, _ => null, now);
+        Expect(noCodexResets.Lines.Count == 0, "no resets row at 0 available");
+
         // Loopback OAuth callback: a real HTTP round trip on 127.0.0.1 and on "localhost".
         try
         {

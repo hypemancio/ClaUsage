@@ -114,6 +114,10 @@ public sealed class AppSettings
     public int CriticalPercent { get; set; } = 90;
     public bool Notifications { get; set; } = true;
     public bool ShowPace { get; set; } = true;
+    /// <summary>Shows sign-in emails masked (m•••@example.com) unless the account was renamed.</summary>
+    public bool HideEmails { get; set; }
+    /// <summary>Notifies when an API-key balance drops below this, in the account's currency. 0 turns it off.</summary>
+    public double LowBalance { get; set; } = 5;
     public TrayDisplay TrayDisplay { get; set; } = TrayDisplay.HighestPercent;
     public AppTheme AppTheme { get; set; } = AppTheme.System;
     public bool HotkeyEnabled { get; set; } = true;

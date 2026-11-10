@@ -162,7 +162,7 @@ public sealed class CodexProvider : IUsageProvider
                 lines.AddRange(WindowLines(sparkLimit, "Spark", "Spark Weekly", now, null, null));
         }
 
-        if (JsonRead.Num(body["rate_limit_reset_credits"]?["available_count"]) is { } resets and >= 0)
+        if (JsonRead.Num(body["rate_limit_reset_credits"]?["available_count"]) is { } resets and >= 1)
             lines.Add(new MetricLine { Label = "Rate limit resets", Kind = MetricKind.Value, Used = Math.Floor(resets), Text = $"{Math.Floor(resets):0} available" });
 
         var credits = body["credits"];

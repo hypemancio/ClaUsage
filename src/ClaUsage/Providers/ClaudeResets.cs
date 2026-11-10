@@ -82,8 +82,9 @@ public sealed partial class ClaudeProvider
     }
 
     /// <summary>The resets row from the last check, if any; appended to every usage read.</summary>
+    /// <summary>The resets row, left out while none is available.</summary>
     public static MetricLine? ResetsLine(Account account, DateTimeOffset now) =>
-        Grants.TryGetValue(account.Id, out var state) ? state.Status?.Line(now) : null;
+        Grants.TryGetValue(account.Id, out var state) && state.Status?.Line(now) is { Used: > 0 } line ? line : null;
 
     public static bool GrantsDue(Account account, DateTimeOffset now) =>
         StateFor(account).CheckedAt is not { } at || now - at >= GrantsInterval;

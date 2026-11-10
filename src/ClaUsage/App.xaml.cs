@@ -74,6 +74,9 @@ public partial class App : Application
         WindowIcon = LoadWindowIcon();
         Service = new UsageService(demo);
         Theme.Mode = Service.Settings.AppTheme;
+        // Dev: --theme light|dark previews a theme without saving it.
+        if (Enum.TryParse<AppTheme>(e.Args.SkipWhile(a => a != "--theme").Skip(1).FirstOrDefault(), true, out var previewTheme))
+            Theme.Mode = previewTheme;
         _panel = new PanelWindow(this);
 
         _tray = new WinForms.NotifyIcon

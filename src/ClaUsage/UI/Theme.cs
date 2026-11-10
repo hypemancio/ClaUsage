@@ -79,6 +79,7 @@ public sealed class Theme
         resources["MutedBrush"] = Muted;
         resources["AccentBrush"] = Accent;
         resources["ButtonHoverBrush"] = ButtonHover;
+        resources["ScrollThumbBrush"] = B(Dark ? "#5A5A62" : "#C2C2C8");
     }
 
     private static SolidColorBrush B(string hex)

@@ -437,9 +437,13 @@ public sealed class SettingsWindow : ThemedWindow
         var critical = Combo(new[] { 80, 85, 90, 95 }.Select(p => ($"{p}%", (object)p)), settings.CriticalPercent);
         critical.SelectionChanged += (_, _) => { settings.CriticalPercent = (int)((ComboBoxItem)critical.SelectedItem).Tag; _app.Service.NotifySettingsChanged(); };
         root.Children.Add(Row("Almost used up at", critical, null));
+        var lowBalance = Combo(new[] { 0d, 1, 2, 5, 10, 20 }.Select(v => (v == 0 ? "Off" : $"Below {v:0}", (object)v)), settings.LowBalance);
+        lowBalance.SelectionChanged += (_, _) => { settings.LowBalance = (double)((ComboBoxItem)lowBalance.SelectedItem).Tag; _app.Service.NotifySettingsChanged(); };
+        root.Children.Add(Row("Low API balance", lowBalance, "OpenRouter and DeepSeek, in the account's currency."));
 
         root.Children.Add(Check("Notify when a limit runs low", settings.Notifications, v => settings.Notifications = v));
         root.Children.Add(Check("Show even-pace marker on bars", settings.ShowPace, v => settings.ShowPace = v));
+        root.Children.Add(Check("Hide email addresses", settings.HideEmails, v => settings.HideEmails = Account.MaskEmails = v));
         root.Children.Add(Check("Global shortcut Ctrl+Alt+U toggles the panel", settings.HotkeyEnabled, v => { settings.HotkeyEnabled = v; _app.UpdateHotkey(); }));
         var launch = Check("Start ClaUsage when I sign in to Windows", LaunchAtLogin.IsEnabled, v =>
         {
