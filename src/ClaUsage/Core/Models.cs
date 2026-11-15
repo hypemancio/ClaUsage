@@ -18,7 +18,7 @@ public static class ProviderKindExtensions
     public static string DisplayName(this ProviderKind kind) => kind switch
     {
         ProviderKind.Claude => "Claude",
-        ProviderKind.Codex => "ChatGPT",
+        ProviderKind.Codex => "Codex",
         ProviderKind.OpenRouter => "OpenRouter",
         ProviderKind.DeepSeek => "DeepSeek",
         _ => kind.ToString(),

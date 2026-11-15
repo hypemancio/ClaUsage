@@ -24,7 +24,7 @@ senza dipendenze esterne.
 | Provider | Login | Mostra |
 |---|---|---|
 | Claude | Browser (OAuth claude.ai, solo `user:profile`) | Session, Weekly, Sonnet, Opus, limiti per modello (es. Fable), Extra usage, piano |
-| ChatGPT | Browser (OAuth OpenAI, porta 1455), fallback device code | Session, Weekly, Spark, Rate limit resets, Credits, Credit limit, piano |
+| Codex (account ChatGPT) | Browser (OAuth OpenAI, porta 1455), fallback device code | Session, Weekly, Spark, Rate limit resets, Credits, Credit limit, piano |
 | OpenRouter | API key (Management o standard) | Balance, Today, Yesterday, This week, This month, Prior 30 days, Key limit, Budget, Free requests |
 | DeepSeek | API key | Balance, Topped up, Granted (USD o CNY), stato del saldo |
 

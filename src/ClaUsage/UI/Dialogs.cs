@@ -183,7 +183,7 @@ public sealed class SignInWindow : ThemedWindow, ILoginUi
             list.Children.Add(ProviderTile(provider.Kind, provider.Kind switch
             {
                 ProviderKind.Claude => "Session, weekly and model limits, extra usage",
-                ProviderKind.Codex => "Session, weekly, Spark, credits",
+                ProviderKind.Codex => "ChatGPT account: Codex session, weekly, Spark, credits (not chat messages)",
                 ProviderKind.OpenRouter => "API key: balance, spend, key limit, budget",
                 ProviderKind.DeepSeek => "API key: balance, granted and topped-up credit",
                 _ => "",

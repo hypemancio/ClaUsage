@@ -148,7 +148,7 @@ public partial class PanelWindow : Window
         });
         panel.Children.Add(new TextBlock
         {
-            Text = "Sign in to Claude or ChatGPT, or add an OpenRouter or DeepSeek key, to see your limits and spend here.",
+            Text = "Sign in to Claude or Codex (ChatGPT account), or add an OpenRouter or DeepSeek key, to see your limits and spend here.",
             TextWrapping = TextWrapping.Wrap,
             TextAlignment = TextAlignment.Center,
             Foreground = _theme.Muted,

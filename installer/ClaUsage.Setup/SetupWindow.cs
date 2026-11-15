@@ -84,7 +84,7 @@ public sealed class SetupWindow : Window
         var panel = new StackPanel();
         panel.Children.Add(Body(existing is { } e
             ? $"ClaUsage {(e.Version is { } v ? v + " " : "")}is installed. The setup puts version {Installer.Version} in its place. Your accounts and settings are kept."
-            : "Your Claude, ChatGPT, OpenRouter and DeepSeek limits, a click away in the tray. Installs for your Windows user only, no administrator rights needed."));
+            : "Your Claude, Codex, OpenRouter and DeepSeek limits, a click away in the tray. Installs for your Windows user only, no administrator rights needed."));
 
         panel.Children.Add(Label("Install folder", 18));
         var folderRow = new Grid();
